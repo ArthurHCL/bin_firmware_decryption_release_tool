@@ -314,10 +314,25 @@ is_reconnect_needed:
 			goto exit_3;
 		}
 	} else {
+#if IS_COMPATIBLE_WITH_VERSIONS_BELOW_WIN10
+		if (0 == read_hid_data_amount) {
+			(void)printf("bootloader code enter command: jumping from application code to bootloader code...\n");
+
+			is_reconnect_needed = true;
+
+			goto exit_3;
+		} else {
+			(void)printf("bootloader code enter command: unknown error: read_hid_data_amount = %d, DFU_packet_error_code = %d\n", read_hid_data_amount, DFU_packet_error_code);
+
+			ret = -1;
+			goto exit_3;
+		}
+#else
 		(void)printf("bootloader code enter command: unknown error: read_hid_data_amount = %d, DFU_packet_error_code = %d\n", read_hid_data_amount, DFU_packet_error_code);
 
 		ret = -1;
 		goto exit_3;
+#endif
 	}
 
 	/* DFU_PACKET_GET_ORIGINAL_PERMISSION_KEY: send. */
@@ -534,11 +549,22 @@ is_reconnect_needed:
 	read_hid_data_amount = hid_read_timeout(target_hid_device, &hid_data_buf[0], USB_COMMUNICATION_RX_DATA_LENGTH, USB_COMMUNICATION_TIMEOUT_IN_MILLISECONDS);
 	if (-1 == read_hid_data_amount) {
 		(void)printf("DFU_PACKET_ENABLE_APPLICATION_CODE: firmware update OK\n");
-	} else{ 
+	} else {
+#if IS_COMPATIBLE_WITH_VERSIONS_BELOW_WIN10
+		if (0 == read_hid_data_amount) {
+			(void)printf("DFU_PACKET_ENABLE_APPLICATION_CODE: firmware update OK\n");
+		} else {
+			(void)printf("DFU_PACKET_ENABLE_APPLICATION_CODE: firmware update FAIL\n");
+
+			ret = -1;
+			goto exit_3;
+		}
+#else
 		(void)printf("DFU_PACKET_ENABLE_APPLICATION_CODE: firmware update FAIL\n");
 
 		ret = -1;
 		goto exit_3;
+#endif
 	}
 	/* above is firmware update of USB communication. */
 
@@ -566,8 +592,8 @@ exit_1:
 	if (is_reconnect_needed) {
 		is_reconnect_needed = false;
 
-		/* it is needed to wait for a while for USB reconnect. */
-		DELAY_S(3);
+		/* it is needed to wait for a while for USB reconnect(some computer response is slow). */
+		DELAY_S(8);
 
 		goto is_reconnect_needed;
 	}

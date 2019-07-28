@@ -13,6 +13,16 @@
 
 
 
+/*
+	0:
+		not compatible with versions below win10.
+	1:
+		compatible with versions below win10.
+*/
+#define IS_COMPATIBLE_WITH_VERSIONS_BELOW_WIN10    1
+
+
+
 #define USB_COMMUNICATION_TX_DATA_LENGTH    (1 + 64)
 #define USB_COMMUNICATION_RX_DATA_LENGTH    (64)
 
